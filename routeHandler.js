@@ -43,7 +43,6 @@ module.exports = (view, state, prev, send, loader, layout) => {
   })
   const viewElement = h('#route-container', {
     'data-route': pathname,
-    'data-router-loading-state': state.router.loadingDataState[pathname],
   }, renderer(state, prev, send))
   onload(viewElement, () => {
     observer.observe(viewElement, {attributes: true, attributeFilter: ['data-route',],})
