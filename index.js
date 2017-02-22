@@ -13,7 +13,7 @@ const route2ViewAndParams = {}
 // Modules should contain at the very least a render function, but can also expose a loadData
 // function for loading data ahead of rendering. If the latter kind of function is supplied,
 // a loader element is rendered for the route until the data is loaded
-module.exports = (view, state, prev, send, loader, layout) => {
+module.exports = (view, loader, layout, state, prev, send) => {
   const {location,} = state
   const {pathname,} = location
   const viewRenderer = view.render != null ? view.render : view
