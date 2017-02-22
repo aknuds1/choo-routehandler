@@ -1,7 +1,6 @@
 const assert = require('assert')
 const isEmpty = require('ramda/src/isEmpty')
 const h = require('@arve.knudsen/hyperscript')
-const onload = require('on-load')
 const map = require('ramda/src/map')
 const toPairs = require('ramda/src/toPairs')
 const S = require('underscore.string.fp')
@@ -10,6 +9,10 @@ const {getQueryParameters,} = require('./utils')
 
 const route2ViewAndParams = {}
 
+// Wrapper for route views, which can either be modules or straight functions.
+// Modules should contain at the very least a render function, but can also expose a loadData
+// function for loading data ahead of rendering. If the latter kind of function is supplied,
+// a loader element is rendered for the route until the data is loaded
 module.exports = (view, state, prev, send, loader, layout) => {
   const {location,} = state
   const {pathname,} = location
@@ -69,5 +72,5 @@ module.exports = (view, state, prev, send, loader, layout) => {
       observer.disconnect()
     },
   }, rendered)
-  return layout(viewElement, state, prev, send, view.leftColumnSections)
+  return layout(viewElement, state, prev, send)
 }

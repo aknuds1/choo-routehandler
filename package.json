@@ -1,0 +1,47 @@
+{
+  "name": "@arve.knudsen/choo-routehandler",
+  "version": "0.0.1",
+  "description": "Simple Choo routing framework, WIP!",
+  "main": "index.js",
+  "keywords": [
+    "choo",
+    "routing"
+  ],
+  "scripts": {
+    "test": "npm run lint",
+    "lint": "eslint ./app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aknuds1/choo-routehandler.git"
+  },
+  "author": "Arve Knudsen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aknuds1/choo-routehandler/issues"
+  },
+  "homepage": "https://github.com/aknuds1/choo-routehandler#readme",
+  "dependencies": {
+    "@arve.knudsen/js-logger": "^1.3.1",
+    "bluebird": "^3.4.6",
+    "on-load": "^3.2.0",
+    "ramda": "^0.23",
+    "underscore.string.fp": "^1.0.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.4.0",
+    "babel-core": "^6.4.0",
+    "babel-polyfill": "^6.16.0",
+    "babel-preset-latest": "^6.14.0",
+    "babel-preset-node5": "^12.0.0",
+    "browserify": "^14.0",
+    "es2020": "^1.1.9",
+    "eslint": "^3.5",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-flatten": "^0.3.1",
+    "gulp-pug": "^3.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.2"
+  }
+}

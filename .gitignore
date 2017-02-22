@@ -1,0 +1,12 @@
+node_modules/
+dist/
+npm-debug.log
+settings.json
+__pycache__
+*.pem
+.DS_Store
+app/templates/*index.pug
+docker/production
+docker/staging
+docker/secrets.json
+rethinkdb/cloud-config.yaml

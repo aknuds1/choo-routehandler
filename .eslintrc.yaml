@@ -1,0 +1,24 @@
+---
+ecmaVersion: 7
+parserOptions:
+  sourceType: "module"
+env:
+  browser: true
+  commonjs: true
+globals:
+rules:
+  strict:
+    - 2
+    - "global"
+  comma-dangle:
+    - 2
+    - "always"
+  quotes:
+    - 2
+    - "single"
+    -
+      allowTemplateLiterals: true
+  new-cap: 0
+  camelcase: 0
+  no-unused-vars: "error"
+  no-undef: "error"
