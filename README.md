@@ -9,9 +9,9 @@ and `layout`.
 <dl>
   <dt>view</dt>
   <dd>Either a function, for rendering the view corresponding to the route, or a module containing
-  at least a function `render` fulfilling the aforementioned responsibility, optionally
-  a function `loadData` for loading data pertaining to the route before rendering it and
-  optionally a function or attribute `pageTitle` for defining a route's page title.
+  at least a function <code>render</code> fulfilling the aforementioned responsibility, optionally
+  a function <code>loadData</code> for loading data pertaining to the route before rendering it and
+  optionally a function or attribute <code>pageTitle</code> for defining a route's page title.
   The loadData function should return a promise resolving to an object to patch Choo state with.</dd>
 
   <dt>loader</dt>
@@ -19,7 +19,7 @@ and `layout`.
 
   <dt>layout</dt>
   <dd>A function representing the layout of the view, that should take four arguments, the rendered
-  view, `state`, `prev` and `send`, and return a DOM element.</dd>
+  view, <code>state</code>, <code>prev</code> and <code>send</code>, and return a DOM element.</dd>
 </dl>
 
 ## Route Rendering
