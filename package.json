@@ -1,6 +1,6 @@
 {
   "name": "@arve.knudsen/choo-routehandler",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple Choo routing framework, WIP!",
   "main": "index.js",
   "keywords": [
