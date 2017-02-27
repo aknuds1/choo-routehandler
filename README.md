@@ -4,7 +4,7 @@ Beware it's a work in progress and is likely to change!!
 
 The core feature of this framework is that it provides a function for wrapping your route handlers,
 mitigating the need for writing boilerplate code. It requires three arguments: `view`, `loader`
-and `layout`.
+and `layout`. You can also pass an options object as the fourth argument.
 
 <dl>
   <dt>view</dt>
@@ -20,6 +20,17 @@ and `layout`.
   <dt>layout</dt>
   <dd>A function representing the layout of the view, that should take four arguments, the rendered
   view, <code>state</code>, <code>prev</code> and <code>send</code>, and return a DOM element.</dd>
+
+  <dt>opts</dt>
+  <dd>An object providing options to the route handler. The following options are supported:
+  <ul>
+    <li>requiresLogin: Configure whether the route requires the user to be logged in.</li>
+    <li>isUserLoggedIn: A function taking <code>state</code> as its argument, returning whether
+    the user is logged in or not.</li>
+    <li>loginUrl: The URL to redirect to if the route requires login and user hasn't yet been
+    logged in.</li>
+  </ul>
+  </dd>
 </dl>
 
 ## Route Rendering
