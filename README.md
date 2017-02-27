@@ -1,6 +1,6 @@
 # choo-routehandler
 This is a small route handling framework on top of [Choo](https://github.com/yoshuawuyts/choo).
-Beware it's a work in progress and is likely to change!!
+Beware it's a work in progress and likely to change!!
 
 The core feature of this framework is that it provides a function for wrapping your route handlers,
 mitigating the need for writing boilerplate code. It requires three arguments: `view`, `loader`
