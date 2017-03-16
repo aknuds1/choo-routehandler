@@ -5,6 +5,15 @@ const equals = require('ramda/src/equals')
 
 const {getQueryParameters,} = require('./utils')
 
+const loadRouteDataFromCache = Promise.method((state, send) => {
+  assert.notEqual(state, null)
+  assert.notEqual(send, null)
+  const route = state.location.pathname
+  const newState = state.router.routeDataCache[route]
+  return Promise.promisify(send)('haveLoadedRouteDataFromCache',
+    {route, newState,})
+})
+
 module.exports = (app) => {
   app.model({
     state: {},
@@ -39,7 +48,7 @@ module.exports = (app) => {
                 })
             })
         } else {
-          loadDataPromise = Promise.resolve()
+          loadDataPromise = loadRouteDataFromCache(state, send)
         }
         loadDataPromise
           .then(() => {
@@ -75,14 +84,27 @@ module.exports = (app) => {
       haveLoadedRouteData: (state, {location, newState,}) => {
         if (location.pathname === state.location.pathname) {
           // The route in question is current
-          const stateObj = {}
+          const loadingDataPatch = {}
           // Mark the route as having had its data loaded
-          stateObj[location.pathname] = 'loaded'
+          loadingDataPatch[location.pathname] = 'loaded'
+          const routeDataCachePatch = {}
+          routeDataCachePatch[location.pathname] = newState
           return merge(newState, {
             router: merge(state.router, {
-              loadingDataState: merge(state.router.loadingDataState, stateObj),
+              loadingDataState: merge(state.router.loadingDataState, loadingDataPatch),
+              routeDataCache: merge(state.router.routeDataCache, routeDataCachePatch),
             }),
           })
+        } else {
+          return {}
+        }
+      },
+      haveLoadedRouteDataFromCache: (state, {route, newState,}) => {
+        if (location.pathname === route) {
+          // The route in question is current
+          return newState
+        } else {
+          return {}
         }
       },
     },
