@@ -42,15 +42,6 @@ module.exports = (app) => {
               return Promise.method(view.loadData)({state, params, send,})
                 .then((newState) => {
                   return Promise.promisify(send)('haveLoadedRouteData', {location, newState,})
-                }, (error) => {
-                  if (error.type === 'notFound') {
-                    return Promise.promisify(send)('haveLoadedRouteData', {location, newState: {},})
-                      .then(() => {
-                        return Promise.promisify(send)('location:set', '/404')
-                      })
-                  } else {
-                    throw error
-                  }
                 })
             })
         } else {
@@ -60,6 +51,15 @@ module.exports = (app) => {
           .then(() => {
             const pageTitle = view.pageTitle
             return Promise.promisify(send)('setPageTitle', pageTitle)
+          }, (error) => {
+            if (error.type === 'notFound') {
+              return Promise.promisify(send)('haveLoadedRouteData', {location, newState: {},})
+                .then(() => {
+                  return Promise.promisify(send)('location:set', '/404')
+                })
+            } else {
+              throw error
+            }
           })
           .then(() => {
             done()
