@@ -16,7 +16,13 @@ const loadRouteDataFromCache = Promise.method((state, send) => {
 
 module.exports = (app) => {
   app.model({
-    state: {},
+    state: {
+      router: {
+        loadingDataState: {},
+        loadingDataState: {},
+        routeDataCache: {},
+      }
+    },
     effects: {
       // React to new route being loaded into DOM, which should trigger fetching its data and
       // then rendering the corresponding view once its data is ready
