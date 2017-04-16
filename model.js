@@ -3,15 +3,15 @@ const assert = require('assert')
 const merge = require('ramda/src/merge')
 const equals = require('ramda/src/equals')
 
-const {getQueryParameters,} = require('./utils')
+const {getQueryParameters, computeRouteString,} = require('./utils')
 
-const loadRouteDataFromCache = Promise.method((state, send) => {
+const loadRouteDataFromCache = Promise.method((state, initialState, send) => {
   assert.notEqual(state, null)
   assert.notEqual(send, null)
-  const route = state.location.pathname
-  const newState = state.router.routeDataCache[route]
+  const routeStr = computeRouteString(state)
+  const newState = merge(initialState, state.router.routeDataCache[routeStr] || {})
   return Promise.promisify(send)('haveLoadedRouteDataFromCache',
-    {route, newState,})
+    {routeStr, newState,})
 })
 
 module.exports = (app) => {
@@ -21,31 +21,38 @@ module.exports = (app) => {
         loadingDataState: {},
         loadingDataState: {},
         routeDataCache: {},
-      }
+      },
     },
     effects: {
       // React to new route being loaded into DOM, which should trigger fetching its data and
       // then rendering the corresponding view once its data is ready
       handleRouteLoadedIntoDom: (state, {route2ViewAndParams,}, send, done) => {
-        const location = state.location
+        assert.notEqual(state.router.loadingDataState, null)
+        const routeStr = computeRouteString(state)
         const queryParameters = getQueryParameters(state)
         // Get view module and URL parameters corresponding to route
         // XXX: Can't use params from state.location, as it's undefined in effects for some reason
-        const [view, params,] = route2ViewAndParams[location.pathname]
+        const [view, params,] = route2ViewAndParams[routeStr]
         assert.notEqual(view, null)
+        const initialState = {
+          router: merge(state.router, {
+            currentRoute: routeStr,
+          }),
+        }
         let loadDataPromise
-        if (view.loadData != null && (state.router.loadingDataState[location.pathname] == null ||
-            !equals(queryParameters, state.router.dataLoadingParameters[location.pathname]))) {
+        if (view.loadData != null && (state.router.loadingDataState[routeStr] == null ||
+            !equals(queryParameters, state.router.dataLoadingParameters[routeStr]))) {
           // The route's data hasn't been loaded or it was for different parameters
-          loadDataPromise = Promise.promisify(send)('isLoadingRouteData', location.pathname)
+          loadDataPromise = Promise.promisify(send)('isLoadingRouteData', routeStr)
             .then(() => {
               return Promise.method(view.loadData)({state, params, send,})
                 .then((newState) => {
-                  return Promise.promisify(send)('haveLoadedRouteData', {location, newState,})
+                  return Promise.promisify(send)('haveLoadedRouteData',
+                    {routeStr, initialState, newState,})
                 })
             })
         } else {
-          loadDataPromise = loadRouteDataFromCache(state, send)
+          loadDataPromise = loadRouteDataFromCache(state, initialState, send)
         }
         loadDataPromise
           .then(() => {
@@ -53,7 +60,8 @@ module.exports = (app) => {
             return Promise.promisify(send)('setPageTitle', pageTitle)
           }, (error) => {
             if (error.type === 'notFound') {
-              return Promise.promisify(send)('haveLoadedRouteData', {location, newState: {},})
+              return Promise.promisify(send)('haveLoadedRouteData',
+                  {routeStr, initialState,})
                 .then(() => {
                   return Promise.promisify(send)('location:set', '/404')
                 })
@@ -69,16 +77,17 @@ module.exports = (app) => {
         if (typeof pageTitle === 'function') {
           pageTitle = pageTitle(state)
         }
+        assert.strictEqual(typeof pageTitle, 'string')
         document.title = pageTitle
         done()
       },
     },
     reducers: {
-      isLoadingRouteData: (state, pathname) => {
+      isLoadingRouteData: (state, routeStr) => {
         const stateObj = {}
-        stateObj[pathname] = 'loading'
+        stateObj[routeStr] = 'loading'
         const parametersObj = {}
-        parametersObj[pathname] = getQueryParameters(state)
+        parametersObj[routeStr] = getQueryParameters(state)
         return {
           disableScrollhandling: true,
           router: merge(state.router, {
@@ -87,26 +96,30 @@ module.exports = (app) => {
           }),
         }
       },
-      haveLoadedRouteData: (state, {location, newState,}) => {
-        if (location.pathname === state.location.pathname) {
+      haveLoadedRouteData: (state, {routeStr, newState, initialState,}) => {
+        if (routeStr === computeRouteString(state)) {
           // The route in question is current
           const loadingDataPatch = {}
           // Mark the route as having had its data loaded
-          loadingDataPatch[location.pathname] = 'loaded'
+          loadingDataPatch[routeStr] = 'loaded'
+          const stateBeforeLoading = merge(initialState, {
+            router: merge(state.router, initialState.router),
+          })
           const routeDataCachePatch = {}
-          routeDataCachePatch[location.pathname] = newState
-          return merge(newState, {
-            router: merge(state.router, {
+          routeDataCachePatch[routeStr] = newState
+          newState = merge(newState, merge(stateBeforeLoading, {
+            router: merge(stateBeforeLoading.router, {
               loadingDataState: merge(state.router.loadingDataState, loadingDataPatch),
               routeDataCache: merge(state.router.routeDataCache, routeDataCachePatch),
             }),
-          })
+          }))
+          return newState
         } else {
           return {}
         }
       },
-      haveLoadedRouteDataFromCache: (state, {route, newState,}) => {
-        if (location.pathname === route) {
+      haveLoadedRouteDataFromCache: (state, {routeStr, newState,}) => {
+        if (computeRouteString(state) === routeStr) {
           // The route in question is current
           return newState
         } else {
