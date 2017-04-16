@@ -77,7 +77,9 @@ module.exports = (app) => {
         if (typeof pageTitle === 'function') {
           pageTitle = pageTitle(state)
         }
-        assert.strictEqual(typeof pageTitle, 'string')
+        if (pageTitle != null) {
+          assert.strictEqual(typeof pageTitle, 'string')
+        }
         document.title = pageTitle
         done()
       },
