@@ -115,13 +115,12 @@ module.exports = function (app) {
           })
           const routeDataCachePatch = {}
           routeDataCachePatch[routeStr] = newState
-          newState = merge(newState, merge(stateBeforeLoading, {
+          return merge(newState, merge(stateBeforeLoading, {
             router: merge(stateBeforeLoading.router, {
               loadingDataState: merge(state.router.loadingDataState, loadingDataPatch),
               routeDataCache: merge(state.router.routeDataCache, routeDataCachePatch),
             }),
           }))
-          return newState
         } else {
           return {}
         }
