@@ -3,18 +3,18 @@ const assert = require('assert')
 const merge = require('ramda/src/merge')
 const equals = require('ramda/src/equals')
 
-const {getQueryParameters, computeRouteString,} = require('./utils')
+const utils = require('./utils')
 
-const loadRouteDataFromCache = Promise.method((state, initialState, send) => {
+const loadRouteDataFromCache = Promise.method(function (state, initialState, send) {
   assert.notEqual(state, null)
   assert.notEqual(send, null)
-  const routeStr = computeRouteString(state)
+  const routeStr = utils.computeRouteString(state)
   const newState = merge(initialState, state.router.routeDataCache[routeStr] || {})
   return Promise.promisify(send)('haveLoadedRouteDataFromCache',
-    {routeStr, newState,})
+    {routeStr: routeStr, newState: newState,})
 })
 
-module.exports = (app) => {
+module.exports = function (app) {
   app.model({
     state: {
       router: {
@@ -26,54 +26,57 @@ module.exports = (app) => {
     effects: {
       // React to new route being loaded into DOM, which should trigger fetching its data and
       // then rendering the corresponding view once its data is ready
-      handleRouteLoadedIntoDom: (state, {route2ViewAndParams,}, send, done) => {
+      handleRouteLoadedIntoDom: function (state, opts, send, done) {
+        const route2ViewAndParams = opts.route2ViewAndParams
         assert.notEqual(state.router.loadingDataState, null)
-        const routeStr = computeRouteString(state)
-        const queryParameters = getQueryParameters(state)
+        const routeStr = utils.computeRouteString(state)
+        const queryParameters = utils.getQueryParameters(state)
         // Get view module and URL parameters corresponding to route
         // XXX: Can't use params from state.location, as it's undefined in effects for some reason
-        const [view, params,] = route2ViewAndParams[routeStr]
+        const viewAndParams = route2ViewAndParams[routeStr]
+        const view = viewAndParams[0]
+        const params = viewAndParams[1]
         assert.notEqual(view, null)
         const initialState = {
           router: merge(state.router, {
             currentRoute: routeStr,
           }),
         }
-        let loadDataPromise
+        var loadDataPromise
         if (view.loadData != null && (state.router.loadingDataState[routeStr] == null ||
             !equals(queryParameters, state.router.dataLoadingParameters[routeStr]))) {
           // The route's data hasn't been loaded or it was for different parameters
           loadDataPromise = Promise.promisify(send)('isLoadingRouteData', routeStr)
-            .then(() => {
-              return Promise.method(view.loadData)({state, params, send,})
-                .then((newState) => {
+            .then(function () {
+              return Promise.method(view.loadData)({state: state, params: params, send: send,})
+                .then(function (newState) {
                   return Promise.promisify(send)('haveLoadedRouteData',
-                    {routeStr, initialState, newState,})
+                    {routeStr: routeStr, initialState :initialState, newState: newState,})
                 })
             })
         } else {
           loadDataPromise = loadRouteDataFromCache(state, initialState, send)
         }
         loadDataPromise
-          .then(() => {
+          .then(function () {
             const pageTitle = view.pageTitle
             return Promise.promisify(send)('setPageTitle', pageTitle)
-          }, (error) => {
+          }, function (error) {
             if (error.type === 'notFound') {
               return Promise.promisify(send)('haveLoadedRouteData',
-                  {routeStr, initialState,})
-                .then(() => {
+                  {routeStr: routeStr, initialState: initialState,})
+                .then(function () {
                   return Promise.promisify(send)('location:set', '/404')
                 })
             } else {
               throw error
             }
           })
-          .then(() => {
+          .then(function () {
             done()
           }, done)
       },
-      setPageTitle: (state, pageTitle, send, done) => {
+      setPageTitle: function (state, pageTitle, send, done) {
         if (typeof pageTitle === 'function') {
           pageTitle = pageTitle(state)
         }
@@ -85,11 +88,11 @@ module.exports = (app) => {
       },
     },
     reducers: {
-      isLoadingRouteData: (state, routeStr) => {
+      isLoadingRouteData: function (state, routeStr) {
         const stateObj = {}
         stateObj[routeStr] = 'loading'
         const parametersObj = {}
-        parametersObj[routeStr] = getQueryParameters(state)
+        parametersObj[routeStr] = utils.getQueryParameters(state)
         return {
           disableScrollhandling: true,
           router: merge(state.router, {
@@ -98,8 +101,11 @@ module.exports = (app) => {
           }),
         }
       },
-      haveLoadedRouteData: (state, {routeStr, newState, initialState,}) => {
-        if (routeStr === computeRouteString(state)) {
+      haveLoadedRouteData: function (state, opts) {
+        const routeStr = opts.routeStr
+        const newState = opts.newState
+        const initialState = opts.initialState
+        if (routeStr === utils.computeRouteString(state)) {
           // The route in question is current
           const loadingDataPatch = {}
           // Mark the route as having had its data loaded
@@ -120,7 +126,9 @@ module.exports = (app) => {
           return {}
         }
       },
-      haveLoadedRouteDataFromCache: (state, {routeStr, newState,}) => {
+      haveLoadedRouteDataFromCache: function (state, opts) {
+        const routeStr = opts.routeStr
+        const newState = opts.newState
         if (computeRouteString(state) === routeStr) {
           // The route in question is current
           return newState

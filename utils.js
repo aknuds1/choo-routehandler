@@ -8,13 +8,15 @@ const toPairs = require('ramda/src/toPairs')
 const isEmpty = require('ramda/src/isEmpty')
 const map = require('ramda/src/map')
 
-const getQueryParameters = (state) => {
-  let queryParameters
+const getQueryParameters = function (state) {
+  var queryParameters
   if (typeof state.location.search === 'string') {
     // XXX: This is really a bug in Choo when calling effects, search should be encoded as an
     // object
-    queryParameters = reduce((acc, str) => {
-      const [key, value,] = S.wordsDelim('=', str)
+    queryParameters = reduce(function (acc, str) {
+      const delimited = S.wordsDelim('=', str)
+      const key = delimited[0]
+      const value = delimited[1]
       if (!S.isBlank(value || '')) {
         acc[key] = decodeURIComponent(value)
       }
@@ -32,19 +34,19 @@ const getQueryParameters = (state) => {
 }
 
 module.exports = {
-  getQueryParameters,
-  computeRouteString: (state) => {
+  getQueryParameters: getQueryParameters,
+  computeRouteString: function (state) {
     // Include query parameters in route representation, so that we'll trigger a reload when
     // they change and not just the route itself
     const queryParameters = getQueryParameters(state)
-    let queryPart
+    var queryPart
     if (!isEmpty(queryParameters)) {
-      queryPart = '?' + S.join('&', map(([key, value,]) => {
-        return `${key}=${value || ''}`
+      queryPart = '?' + S.join('&', map(function (keyAndValue) {
+        return keyAndValue[0] + '=' + (keyAndValue[1] || '')
       }, toPairs(queryParameters)))
     } else {
       queryPart = ''
     }
-    return `${state.location.pathname}${queryPart}`
+    return state.location.pathname + queryPart
   },
 }

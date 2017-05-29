@@ -1,11 +1,11 @@
 const assert = require('assert')
 const h = require('@arve.knudsen/hyperscript')
 
-const {computeRouteString,} = require('./utils')
+const computeRouteString = require('./utils').computeRouteString
 
 const route2ViewAndParams = {}
 
-const redirectToLogin = (opts, currentRoute, state, send) => {
+const redirectToLogin = function (opts, currentRoute, state, send) {
   if (opts.requiresLogin) {
     assert.notEqual(opts.isUserLoggedIn, null)
     assert.notEqual(opts.loginUrl, null)
@@ -24,13 +24,14 @@ const redirectToLogin = (opts, currentRoute, state, send) => {
 // Modules should contain at the very least a render function, but can also expose a loadData
 // function for loading data ahead of rendering. If the latter kind of function is supplied,
 // a loader element is rendered for the route until the data is loaded
-module.exports = (view, loader, layout, opts={}) => {
-  const routeHandler = (state, prev, send) => {
-    const {location,} = state
+module.exports = function (view, loader, layout, opts) {
+  opts = opts || {}
+  const routeHandler = function (state, prev, send) {
+    const location = state.location
     if (!redirectToLogin(opts, location.pathname, state, send)) {
       const viewRenderer = view.render != null ? view.render : view
       const routeStr = computeRouteString(state)
-      let renderer
+      var renderer
       if (state.isLoading) {
         renderer = loader
       } else if (state.router.currentRoute !== routeStr) {
@@ -58,20 +59,20 @@ module.exports = (view, loader, layout, opts={}) => {
       route2ViewAndParams[routeStr] = [view, location.params,]
       // Observe changes to data-route parameter of route container, since we want to react
       // synchronously to a new route being rendered.
-      const observer = new MutationObserver((mutations) => {
+      const observer = new MutationObserver(function (mutations) {
         assert.strictEqual(mutations[0].attributeName, 'data-route')
-        send('handleRouteLoadedIntoDom', {route2ViewAndParams,})
+        send('handleRouteLoadedIntoDom', {route2ViewAndParams: route2ViewAndParams,})
       })
       const rendered = renderer(state, prev, send)
       // Render a container for the route view, which we can observe to see when a new route is
       // rendered
       const viewElement = h('#route-container', {
         'data-route': routeStr,
-        onload: (element) => {
+        onload: function (element) {
           observer.observe(element, {attributes: true, attributeFilter: ['data-route',],})
-          send('handleRouteLoadedIntoDom', {route2ViewAndParams,})
+          send('handleRouteLoadedIntoDom', {route2ViewAndParams: route2ViewAndParams,})
         },
-        onunload: () => {
+        onunload: function () {
           observer.disconnect()
         },
       }, rendered)
