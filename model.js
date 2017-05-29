@@ -129,7 +129,7 @@ module.exports = function (app) {
       haveLoadedRouteDataFromCache: function (state, opts) {
         const routeStr = opts.routeStr
         const newState = opts.newState
-        if (computeRouteString(state) === routeStr) {
+        if (utils.computeRouteString(state) === routeStr) {
           // The route in question is current
           return newState
         } else {
