@@ -51,7 +51,7 @@ module.exports = function (app) {
               return Promise.method(view.loadData)({state: state, params: params, send: send,})
                 .then(function (newState) {
                   return Promise.promisify(send)('haveLoadedRouteData',
-                    {routeStr: routeStr, initialState :initialState, newState: newState,})
+                    {routeStr: routeStr, initialState: initialState, newState: newState,})
                 })
             })
         } else {
